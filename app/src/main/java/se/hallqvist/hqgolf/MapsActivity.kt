@@ -210,12 +210,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
     override fun onConnected(p0: Bundle?) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                             Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
+                // XXX Show an explanation to the user *asynchronously* -- don't block
+                // XXX this thread waiting for the user's response! After the user
+                // XXX sees the explanation, try again to request the permission.
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0)
             } else {
                 // No explanation needed, we can request the permission.
                 ActivityCompat.requestPermissions(this,
