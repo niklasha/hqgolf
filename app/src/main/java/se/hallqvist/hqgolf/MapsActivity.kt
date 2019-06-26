@@ -18,6 +18,7 @@ import android.os.Environment
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
@@ -36,8 +37,10 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_maps.*
 import java.io.File
 import java.io.IOException
@@ -69,6 +72,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseInstanceId.getInstance().instanceId
+                .addOnCompleteListener(OnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        Log.w(TAG, "getInstanceId failed", task.exception)
+                        return@OnCompleteListener
+                    }
+
+                    // Log new Instance ID token
+                    Log.d(TAG, task.result?.token)
+                })
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -204,8 +217,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         val bitmap = Bitmap.createBitmap(
                 drawable!!.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         val canvas = Canvas(bitmap);
-        drawable?.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable?.draw(canvas);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
         return bitmap;
     }
 
@@ -244,7 +257,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                     }
                 })
         fab.setOnClickListener { view -> strike(view) }
-        fab.setOnLongClickListener { view -> nextHole(); true }
+        fab.setOnLongClickListener { _ -> nextHole(); true }
     }
 
     fun strike(view: View) {
@@ -311,11 +324,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         val dialog = AlertDialog.Builder(this)
         dialog.setTitle("Enable Location")
                 .setMessage("Your Locations Settings is set to 'Off'.\nPlease Enable Location to " + "use this app")
-                .setPositiveButton("Location Settings", DialogInterface.OnClickListener { paramDialogInterface, paramInt ->
+                .setPositiveButton("Location Settings", DialogInterface.OnClickListener { _, _ ->
                     val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                     startActivity(myIntent)
                 })
-                .setNegativeButton("Cancel", DialogInterface.OnClickListener { paramDialogInterface, paramInt -> })
+                .setNegativeButton("Cancel", DialogInterface.OnClickListener { _, _ -> })
         dialog.show()
     }
 
@@ -329,6 +342,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+        // XXX Check out the deprecation of this.
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
                 mLocationRequest, this);
     }
